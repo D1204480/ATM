@@ -26,17 +26,16 @@ public class ATMOperations {
   }
 
   // 計算時段手續費
-  private static double calculateTimeBasedFee(LocalTime currentTime) {
+  static double calculateTimeBasedFee(LocalTime currentTime) {
     if (currentTime.isBefore(Constants.WORK_START_TIME) ||
-        currentTime.isAfter(Constants.EVENING_END_TIME)) {
+        currentTime.compareTo(Constants.EVENING_END_TIME) >= 0) {
       // 23:00 - 09:00 夜間時段
       return Constants.NIGHT_EXTRA_FEE;
-    } else if (currentTime.isAfter(Constants.WORK_END_TIME) &&
-        currentTime.isBefore(Constants.EVENING_END_TIME)) {
+    } else if (currentTime.compareTo(Constants.WORK_END_TIME) >= 0){
       // 17:00 - 23:00 晚間時段
       return Constants.EVENING_EXTRA_FEE;
     }
-    return 0;
+    return 0;  // 其他時間（09:00-17:00）
   }
 
   // 計算提款的手續費

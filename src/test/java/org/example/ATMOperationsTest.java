@@ -1,11 +1,13 @@
 package org.example;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+import java.time.LocalTime;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
@@ -149,6 +151,93 @@ class ATMOperationsTest {
 
       // 驗證提款是否被拒絕（餘額不足）
       verify(mockAccount, never()).deductBalance(anyDouble());
+    }
+  }
+
+
+  @Nested
+  @DisplayName("時段手續費計算測試")
+  class TimeBasedFeeTest {
+
+    @Test
+    @DisplayName("工作時間內不收取手續費")
+    void shouldNotChargeFeeDuringWorkHours() {
+      // 測試工作時間內的時段 (09:00-17:00)
+      LocalTime workTime = LocalTime.of(13, 0);  // 下午 1 點
+      double fee = ATMOperations.calculateTimeBasedFee(workTime);
+      assertEquals(0, fee, "工作時間內不應收取手續費");
+    }
+
+    @Test
+    @DisplayName("夜間時段應收取夜間手續費")
+    void shouldChargeNightFee() {
+      // 測試夜間時段 (23:00-09:00)
+      LocalTime nightTime1 = LocalTime.of(23, 30);  // 夜間 23:30
+      double fee1 = ATMOperations.calculateTimeBasedFee(nightTime1);
+      assertEquals(Constants.NIGHT_EXTRA_FEE, fee1, "夜間時段應收取夜間手續費");
+
+      LocalTime nightTime2 = LocalTime.of(3, 0);    // 凌晨 3:00
+      double fee2 = ATMOperations.calculateTimeBasedFee(nightTime2);
+      assertEquals(Constants.NIGHT_EXTRA_FEE, fee2, "夜間時段應收取夜間手續費");
+    }
+
+    @Test
+    @DisplayName("晚間時段應收取晚間手續費")
+    void shouldChargeEveningFee() {
+      // 測試晚間時段 (17:00-23:00)
+      LocalTime eveningTime = LocalTime.of(20, 0);  // 晚上 8 點
+      double fee = ATMOperations.calculateTimeBasedFee(eveningTime);
+      assertEquals(Constants.EVENING_EXTRA_FEE, fee, "晚間時段應收取晚間手續費");
+    }
+
+    @DisplayName("測試各時段邊界")
+    @ParameterizedTest(name = "時間 {0}:{1} 應收取 {2} 元手續費")
+    @CsvSource({
+        "9, 0, 0",      // 工作時間開始
+        "16, 59, 0",    // 工作時間結束前
+        "17, 0, 10",    // 晚間時段開始
+        "22, 59, 10",   // 晚間時段結束前
+        "23, 0, 20",    // 夜間時段開始
+        "23, 59, 20",   // 午夜前
+        "0, 0, 20",     // 午夜
+        "8, 59, 20"     // 工作時間開始前
+    })
+    void shouldChargeCorrectFeeAtDifferentTimes(int hour, int minute, int expectedFee) {
+      LocalTime time = LocalTime.of(hour, minute);
+      double actualFee = ATMOperations.calculateTimeBasedFee(time);
+      assertEquals(expectedFee, actualFee,
+          String.format("時間 %02d:%02d 的手續費計算錯誤", hour, minute));
+    }
+
+    @Test
+    @DisplayName("測試邊界時間點")
+    void shouldHandleBoundaryTimes() {
+      assertAll(
+          // 09:00 - 工作時間開始，不收費
+          () -> assertEquals(0,
+              ATMOperations.calculateTimeBasedFee(Constants.WORK_START_TIME),
+              "09:00 不應收費"),
+
+          // 17:00 - 晚間時段開始，收晚間費用
+          () -> assertEquals(Constants.EVENING_EXTRA_FEE,
+              ATMOperations.calculateTimeBasedFee(Constants.WORK_END_TIME),
+              "17:00 應收取晚間費用"),
+
+          // 23:00 - 夜間時段開始，收夜間費用
+          () -> assertEquals(Constants.NIGHT_EXTRA_FEE,
+              ATMOperations.calculateTimeBasedFee(Constants.EVENING_END_TIME),
+              "23:00 應收取夜間費用"),
+
+          // 08:59 - 夜間時段
+          () -> assertEquals(Constants.NIGHT_EXTRA_FEE,
+              ATMOperations.calculateTimeBasedFee(LocalTime.of(8, 59)),
+              "08:59 應收取夜間費用"),
+
+          // 16:59 - 工作時段
+          () -> assertEquals(0,
+              ATMOperations.calculateTimeBasedFee(LocalTime.of(16, 59)),
+              "16:59 不應收費")
+      );
     }
   }
 
