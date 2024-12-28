@@ -61,7 +61,7 @@ public class ATMOperations {
   }
 
   // 顯示手續費明細
-  private static void displayFeeDetails(double amount, CurrencyType currencyType, boolean isNonBankATM, double totalFee) {
+  static void displayFeeDetails(double amount, CurrencyType currencyType, boolean isNonBankATM, double totalFee) {
     LocalTime currentTime = LocalTime.now();
     System.out.println("手續費明細：");
 
