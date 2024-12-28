@@ -25,6 +25,10 @@ class ATMOperationsTest {
   @Mock
   private Account mockAccount;
 
+  @Test
+  void performWithdrawal() {
+  }
+
   @Nested
   @DisplayName("提款限額測試")
   class WithdrawalLimitTests {
@@ -451,5 +455,6 @@ class ATMOperationsTest {
           "負數金額提款不應收取手續費");
     }
   }
+
 
 }
