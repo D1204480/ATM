@@ -36,7 +36,7 @@ public class ATMSystem {
   }
 
   // 密碼驗證
-  private static boolean authenticate(Scanner scanner, Account account) {
+  static boolean authenticate(Scanner scanner, Account account) {
     System.out.print("請輸入密碼：");
     String password = scanner.nextLine();
     if (account.validatePassword(password)) {
@@ -52,7 +52,7 @@ public class ATMSystem {
   }
 
   // 顯示主選單
-  private static int showMainMenu(Scanner scanner) {
+  static int showMainMenu(Scanner scanner) {
     System.out.println("\n請選擇操作：");
     System.out.println("1. 提款");
     System.out.println("2. 查詢餘額");
@@ -62,7 +62,7 @@ public class ATMSystem {
   }
 
   // 選擇貨幣類型
-  private static CurrencyType selectCurrency(Scanner scanner) {
+  static CurrencyType selectCurrency(Scanner scanner) {
     System.out.println("\n請選擇提款貨幣：");
     System.out.println("1. 新台幣 (TWD)");
     System.out.println("2. 美元 (USD)");
@@ -83,7 +83,7 @@ public class ATMSystem {
   }
 
   // 執行提款操作
-  private static void performWithdrawal(Account account, Scanner scanner) {
+  static void performWithdrawal(Account account, Scanner scanner) {
     // 選擇貨幣類型
     CurrencyType currencyType = selectCurrency(scanner);
 
@@ -107,7 +107,7 @@ public class ATMSystem {
   }
 
   // 查詢帳戶餘額
-  private static void checkBalance(Account account) {
+  static void checkBalance(Account account) {
     System.out.println("當前餘額：" + account.getBalance() + " TWD");
     // 顯示各幣別約當金額
     System.out.println("\n約當外幣金額：");
