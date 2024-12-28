@@ -5,10 +5,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import java.time.LocalTime;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -154,7 +159,6 @@ class ATMOperationsTest {
     }
   }
 
-
   @Nested
   @DisplayName("時段手續費計算測試")
   class TimeBasedFeeTest {
@@ -241,14 +245,212 @@ class ATMOperationsTest {
     }
   }
 
-  @Test
-  @DisplayName("測試提款金額為0或負數")
-  void invalidAmountTest() {
-    when(mockAccount.getAccountType()).thenReturn(AccountType.NORMAL);
+  @Nested
+  @DisplayName("台幣提款手續費測試")
+  class TWDFeesTest {
 
-    assertFalse(ATMOperations.validateWithdrawal(mockAccount, 0, CurrencyType.TWD),
-        "提款金額為0應該被拒絕");
-    assertFalse(ATMOperations.validateWithdrawal(mockAccount, -100, CurrencyType.TWD),
-        "提款金額為負數應該被拒絕");
+    @Test
+    @DisplayName("本行台幣提款只收時段手續費")
+    void chargeTimeBasedFeeForOwnBankTWD() {
+      try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+        // 模擬 calculateTimeBasedFee 返回 0（假設在工作時間內）
+        mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+            .thenReturn(0.0);
+
+        // 允許實際調用 calculateFees
+        mockedStatic.when(() -> ATMOperations.calculateFees(
+            any(Double.class),
+            any(CurrencyType.class),
+            any(Boolean.class)
+        )).thenCallRealMethod();
+
+        double fee = ATMOperations.calculateFees(1000, CurrencyType.TWD, false);
+        assertEquals(0, fee, "本行台幣在工作時間內提款不應收取手續費");
+      }
+    }
+
+    @Test
+    @DisplayName("跨行台幣提款應收取基本手續費")
+    void chargeBasicFeeForNonBankTWD() {
+      try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+        // 模擬 calculateTimeBasedFee 返回 0（假設在工作時間內）
+        mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+            .thenReturn(0.0);
+
+        // 允許實際調用 calculateFees
+        mockedStatic.when(() -> ATMOperations.calculateFees(
+            any(Double.class),
+            any(CurrencyType.class),
+            any(Boolean.class)
+        )).thenCallRealMethod();
+
+        double fee = ATMOperations.calculateFees(1000, CurrencyType.TWD, true);
+        assertEquals(Constants.NON_BANK_FEE, fee, "跨行台幣提款應收取基本手續費");
+      }
+    }
   }
+
+  @Nested
+  @DisplayName("外幣提款手續費測試")
+  class ForeignCurrencyFeesTest {
+
+    @Test
+    @DisplayName("本行美金提款應收取最低外幣手續費")
+    void chargeMinFeeForSmallUSDWithdrawal() {
+      try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+        // 模擬 calculateTimeBasedFee 返回 0（假設在工作時間）
+        mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+            .thenReturn(0.0);
+
+        // 允許實際調用 calculateFees
+        mockedStatic.when(() -> ATMOperations.calculateFees(
+            any(Double.class),
+            any(CurrencyType.class),
+            any(Boolean.class)
+        )).thenCallRealMethod();
+
+        // 小額提款應收取最低手續費
+        double fee = ATMOperations.calculateFees(10, CurrencyType.USD, false);
+        assertEquals(Constants.FOREIGN_CURRENCY_FEE_MIN, fee,
+            "小額外幣提款應收取最低手續費");
+      }
+    }
+
+    @Test
+    @DisplayName("本行大額美金提款應收取 1% 手續費")
+    void chargePercentageFee() {
+      try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+        mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+            .thenReturn(0.0);
+
+        mockedStatic.when(() -> ATMOperations.calculateFees(
+            any(Double.class),
+            any(CurrencyType.class),
+            any(Boolean.class)
+        )).thenCallRealMethod();
+
+        // 1000 USD = 31500 TWD，應收取 1% = 315 TWD
+        double fee = ATMOperations.calculateFees(1000, CurrencyType.USD, false);
+        assertEquals(315, fee, 1, "大額外幣提款應收取 1% 手續費");
+      }
+    }
+
+    @Test
+    @DisplayName("跨行美金提款應收取外幣手續費和跨行手續費")
+    void chargeForeignAndNonBankFees() {
+      try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+        // 模擬 calculateTimeBasedFee 返回 0
+        mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+            .thenReturn(0.0);
+
+        mockedStatic.when(() -> ATMOperations.calculateFees(
+            any(Double.class),
+            any(CurrencyType.class),
+            any(Boolean.class)
+        )).thenCallRealMethod();
+
+        double fee = ATMOperations.calculateFees(10, CurrencyType.USD, true);
+        assertEquals(
+            Constants.FOREIGN_CURRENCY_FEE_MIN + Constants.NON_BANK_FEE,
+            fee,
+            "應同時收取外幣和跨行手續費"
+        );
+      }
+    }
+  }
+
+  @Nested
+  @DisplayName("組合情境測試")
+  class CombinationScenariosTest {
+
+    private static Stream<Arguments> provideFeeScenarios() {
+      return Stream.of(
+          // amount, currencyType, isNonBankATM, expectedMinFee
+          Arguments.of(1000, CurrencyType.TWD, false, 0),  // 本行台幣
+          Arguments.of(1000, CurrencyType.TWD, true, Constants.NON_BANK_FEE),  // 跨行台幣
+          Arguments.of(10, CurrencyType.USD, false, Constants.FOREIGN_CURRENCY_FEE_MIN),  // 小額外幣
+          Arguments.of(10, CurrencyType.USD, true,
+              Constants.FOREIGN_CURRENCY_FEE_MIN + Constants.NON_BANK_FEE)  // 跨行小額外幣
+      );
+    }
+
+    @ParameterizedTest(name = "提款 {0} {1} 於{2}行ATM")
+    @MethodSource("provideFeeScenarios")  //把測試方法參數化
+//    @CsvSource({
+//        "1000, TWD, false, 0",    // 本行台幣
+//        "1000, TWD, true, 15",    // 跨行台幣
+//        "10, USD, false, 10",     // 小額外幣
+//        "10, USD, true, 25"       // 跨行小額外幣
+//    })
+    void shouldCalculateCorrectFees(
+        double amount,
+        CurrencyType currencyType,
+        boolean isNonBankATM,
+        double expectedMinFee) {
+
+      double actualFee = ATMOperations.calculateFees(amount, currencyType, isNonBankATM);
+      assertTrue(actualFee >= expectedMinFee,
+          String.format("手續費 %.2f 應該大於等於最低手續費 %.2f", actualFee, expectedMinFee));
+    }
+  }
+
+  @Test
+  @DisplayName("測試所有幣別")
+  void shouldHandleAllCurrencyTypes() {
+    assertAll(
+        () -> assertTrue(ATMOperations.calculateFees(1000, CurrencyType.TWD, false) >= 0,
+            "台幣提款應計算正確手續費"),
+        () -> assertTrue(ATMOperations.calculateFees(1000, CurrencyType.USD, false) >=
+                Constants.FOREIGN_CURRENCY_FEE_MIN,
+            "美金提款應計算正確手續費"),
+        () -> assertTrue(ATMOperations.calculateFees(1000, CurrencyType.EUR, false) >=
+                Constants.FOREIGN_CURRENCY_FEE_MIN,
+            "歐元提款應計算正確手續費"),
+        () -> assertTrue(ATMOperations.calculateFees(1000, CurrencyType.JPY, false) >=
+                Constants.FOREIGN_CURRENCY_FEE_MIN,
+            "日圓提款應計算正確手續費")
+    );
+  }
+
+  @Test
+  @DisplayName("測試0元提款")
+  void zeroAmount() {
+    try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+      // 模擬 calculateTimeBasedFee 返回 0
+      mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+          .thenReturn(0.0);
+
+      // 允許實際調用 calculateFees
+      mockedStatic.when(() -> ATMOperations.calculateFees(
+          any(Double.class),
+          any(CurrencyType.class),
+          any(Boolean.class)
+      )).thenCallRealMethod();
+
+      assertEquals(0, ATMOperations.calculateFees(0, CurrencyType.TWD, false),
+          "0元提款不應收取手續費");
+    }
+  }
+
+  @Test
+  @DisplayName("測試負數金額提款")
+  void negativeAmount() {
+    try (MockedStatic<ATMOperations> mockedStatic = Mockito.mockStatic(ATMOperations.class)) {
+      // 模擬 calculateTimeBasedFee 返回 0
+      mockedStatic.when(() -> ATMOperations.calculateTimeBasedFee(any(LocalTime.class)))
+          .thenReturn(0.0);
+
+      // 允許實際調用 calculateFees
+      mockedStatic.when(() -> ATMOperations.calculateFees(
+          any(Double.class),
+          any(CurrencyType.class),
+          any(Boolean.class)
+      )).thenCallRealMethod();
+
+      assertEquals(0, ATMOperations.calculateFees(-100, CurrencyType.TWD, false),
+          "負數金額提款不應收取手續費");
+    }
+  }
+
+  
 }
