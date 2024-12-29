@@ -1,0 +1,257 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ATMOperations</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.example</a>
+</div>
+
+<h1>Coverage Summary for Class: ATMOperations (org.example)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ATMOperations</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85.7%
+  </span>
+  <span class="absValue">
+    (6/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (34/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    98.5%
+  </span>
+  <span class="absValue">
+    (66/67)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.example;
+&nbsp;
+&nbsp;import java.time.LocalTime;
+&nbsp;
+<b class="nc">&nbsp;public class ATMOperations {</b>
+&nbsp;
+&nbsp;  // 驗證提款金額是否符合規則
+&nbsp;  public static boolean validateWithdrawal(Account account, double amount, CurrencyType currencyType) {
+&nbsp;    // 將外幣金額轉換為台幣進行驗證
+<b class="fc">&nbsp;    double amountInTWD = currencyType.convertToTWD(amount);</b>
+<b class="fc">&nbsp;    AccountType accountType = account.getAccountType();</b>
+&nbsp;
+<b class="fc">&nbsp;    if (amountInTWD &gt; accountType.getMaxWithdrawalPerTransaction()) {</b>
+<b class="fc">&nbsp;      System.out.println(accountType.getDescription() + &quot;單次提款不得超過 &quot; +</b>
+<b class="fc">&nbsp;          accountType.getMaxWithdrawalPerTransaction() + &quot; TWD！&quot;);</b>
+<b class="fc">&nbsp;      return false;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    if (account.getDailyWithdrawnAmount() + amountInTWD &gt; accountType.getMaxDailyWithdrawal()) {</b>
+<b class="fc">&nbsp;      System.out.println(&quot;今日提款已超過&quot; + accountType.getDescription() +</b>
+<b class="fc">&nbsp;          &quot;每日限額：&quot; + accountType.getMaxDailyWithdrawal() + &quot; TWD！&quot;);</b>
+<b class="fc">&nbsp;      return false;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    return true;</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 計算時段手續費
+&nbsp;  static double calculateTimeBasedFee(LocalTime currentTime) {
+<b class="fc">&nbsp;    if (currentTime.isBefore(Constants.WORK_START_TIME) ||</b>
+<b class="fc">&nbsp;        currentTime.compareTo(Constants.EVENING_END_TIME) &gt;= 0) {</b>
+&nbsp;      // 23:00 - 09:00 夜間時段
+<b class="fc">&nbsp;      return Constants.NIGHT_EXTRA_FEE;</b>
+<b class="fc">&nbsp;    } else if (currentTime.compareTo(Constants.WORK_END_TIME) &gt;= 0){</b>
+&nbsp;      // 17:00 - 23:00 晚間時段
+<b class="fc">&nbsp;      return Constants.EVENING_EXTRA_FEE;</b>
+&nbsp;    }
+<b class="fc">&nbsp;    return 0;  // 其他時間（09:00-17:00）</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 計算提款的手續費
+&nbsp;  public static double calculateFees(double amount, CurrencyType currencyType, boolean isNonBankATM) {
+<b class="fc">&nbsp;    double fee = 0;</b>
+<b class="fc">&nbsp;    LocalTime currentTime = LocalTime.now();</b>
+&nbsp;
+&nbsp;    // 如果不是台幣，計算外幣手續費
+<b class="fc">&nbsp;    if (currencyType != CurrencyType.TWD) {</b>
+<b class="fc">&nbsp;      double amountInTWD = currencyType.convertToTWD(amount);</b>
+<b class="fc">&nbsp;      fee += Math.max(amountInTWD * 0.01, Constants.FOREIGN_CURRENCY_FEE_MIN);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 非本行提款手續費
+<b class="fc">&nbsp;    if (isNonBankATM) {</b>
+<b class="fc">&nbsp;      fee += Constants.NON_BANK_FEE;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 加入時段手續費
+<b class="fc">&nbsp;    fee += calculateTimeBasedFee(currentTime);</b>
+&nbsp;
+<b class="fc">&nbsp;    return fee;</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 顯示手續費明細
+&nbsp;  static void displayFeeDetails(double amount, CurrencyType currencyType, boolean isNonBankATM, double totalFee) {
+<b class="fc">&nbsp;    LocalTime currentTime = LocalTime.now();</b>
+<b class="fc">&nbsp;    System.out.println(&quot;手續費明細：&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;    if (currencyType != CurrencyType.TWD) {</b>
+<b class="fc">&nbsp;      double amountInTWD = currencyType.convertToTWD(amount);</b>
+<b class="fc">&nbsp;      double foreignFee = Math.max(amountInTWD * 0.01, Constants.FOREIGN_CURRENCY_FEE_MIN);</b>
+<b class="fc">&nbsp;      System.out.println(&quot;- 外幣提款手續費：&quot; + foreignFee + &quot; TWD&quot;);</b>
+<b class="fc">&nbsp;      System.out.printf(&quot;  (以 %.2f %s 計算)\n&quot;, amount, currencyType.name());</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    if (isNonBankATM) {</b>
+<b class="fc">&nbsp;      System.out.println(&quot;- 跨行提款手續費：&quot; + Constants.NON_BANK_FEE + &quot; TWD&quot;);</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    double timeFee = calculateTimeBasedFee(currentTime);</b>
+<b class="fc">&nbsp;    if (timeFee &gt; 0) {</b>
+<b class="fc">&nbsp;      String timeRange = timeFee == Constants.NIGHT_EXTRA_FEE ?</b>
+<b class="fc">&nbsp;          &quot;夜間(23:00-09:00)&quot; : &quot;晚間(17:00-23:00)&quot;;</b>
+<b class="fc">&nbsp;      System.out.println(&quot;- &quot; + timeRange + &quot;時段手續費：&quot; + timeFee + &quot; TWD&quot;);</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    System.out.println(&quot;總手續費：&quot; + totalFee + &quot; TWD&quot;);</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 執行提款操作
+&nbsp;  public static void performWithdrawal(Account account, double amount, CurrencyType currencyType, boolean isNonBankATM) {
+&nbsp;    // 驗證提款金額
+<b class="fc">&nbsp;    if (!validateWithdrawal(account, amount, currencyType)) return;</b>
+&nbsp;
+&nbsp;    // 將提款金額轉換為台幣
+<b class="fc">&nbsp;    double amountInTWD = currencyType.convertToTWD(amount);</b>
+&nbsp;
+&nbsp;    // 計算手續費
+<b class="fc">&nbsp;    double fees = calculateFees(amount, currencyType, isNonBankATM);</b>
+<b class="fc">&nbsp;    double totalAmount = amountInTWD + fees;</b>
+&nbsp;
+&nbsp;    // 檢查餘額是否足夠
+<b class="fc">&nbsp;    if (!account.canWithdraw(totalAmount)) {</b>
+<b class="fc">&nbsp;      System.out.println(&quot;餘額不足以支付提款金額與手續費，提款失敗！&quot;);</b>
+<b class="fc">&nbsp;      if (currencyType != CurrencyType.TWD) {</b>
+<b class="fc">&nbsp;        System.out.printf(&quot;提款金額 %.2f %s 約為 %.2f TWD\n&quot;,</b>
+<b class="fc">&nbsp;            amount, currencyType.name(), amountInTWD);</b>
+&nbsp;      }
+&nbsp;      return;
+&nbsp;    }
+&nbsp;
+&nbsp;    // 更新帳戶數據
+<b class="fc">&nbsp;    account.deductBalance(totalAmount);</b>
+<b class="fc">&nbsp;    account.addDailyWithdrawnAmount((int) amountInTWD);</b>
+&nbsp;
+&nbsp;    // 顯示交易結果
+<b class="fc">&nbsp;    System.out.println(&quot;\n===== 提款交易成功 =====&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;帳戶類型：&quot; + account.getAccountType().getDescription());</b>
+<b class="fc">&nbsp;    if (currencyType == CurrencyType.TWD) {</b>
+<b class="fc">&nbsp;      System.out.printf(&quot;提款金額：%.2f TWD\n&quot;, amount);</b>
+&nbsp;    } else {
+<b class="fc">&nbsp;      System.out.printf(&quot;提款金額：%.2f %s (約 %.2f TWD)\n&quot;,</b>
+<b class="fc">&nbsp;          amount, currencyType.name(), amountInTWD);</b>
+<b class="fc">&nbsp;      System.out.printf(&quot;當前匯率：1 %s = %.2f TWD\n&quot;,</b>
+<b class="fc">&nbsp;          currencyType.name(), currencyType.getExchangeRate());</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    displayFeeDetails(amount, currencyType, isNonBankATM, fees);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;剩餘餘額：&quot; + account.getBalance() + &quot; TWD&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;======================&quot;);</b>
+&nbsp;
+&nbsp;    // 餘額警告
+<b class="fc">&nbsp;    if (account.isLowBalance()) {</b>
+<b class="fc">&nbsp;      System.out.println(&quot;\n警告：帳戶餘額低於 &quot; + Constants.LOW_BALANCE_WARNING + &quot; TWD！&quot;);</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  // 舊的方法保留用於向後兼容
+&nbsp;  public static void performWithdrawal(Account account, double amount, boolean isForeignCurrency, boolean isNonBankATM) {
+<b class="fc">&nbsp;    performWithdrawal(account, amount, isForeignCurrency ? CurrencyType.USD : CurrencyType.TWD, isNonBankATM);</b>
+&nbsp;  }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-12-29 11:19</div>
+</div>
+</body>
+</html>

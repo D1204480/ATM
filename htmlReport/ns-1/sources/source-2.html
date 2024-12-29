@@ -1,0 +1,237 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ATMSystem</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.example</a>
+</div>
+
+<h1>Coverage Summary for Class: ATMSystem (org.example)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ATMSystem</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    71.4%
+  </span>
+  <span class="absValue">
+    (5/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    60.9%
+  </span>
+  <span class="absValue">
+    (14/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    72.6%
+  </span>
+  <span class="absValue">
+    (45/62)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.example;
+&nbsp;
+&nbsp;import java.util.Scanner;
+&nbsp;
+<b class="nc">&nbsp;public class ATMSystem {</b>
+&nbsp;  public static void main(String[] args) {
+<b class="nc">&nbsp;    Scanner scanner = new Scanner(System.in);</b>
+<b class="nc">&nbsp;    Account account = new Account(50000, &quot;1234&quot;, AccountType.GOLD); // 初始化一個金卡帳戶，餘額 50,000 元，密碼 &quot;1234&quot;</b>
+&nbsp;
+<b class="nc">&nbsp;    System.out.println(&quot;歡迎使用 ATM 系統！&quot;);</b>
+<b class="nc">&nbsp;    System.out.println(&quot;您的帳戶類型是：&quot; + account.getAccountType().getDescription());</b>
+&nbsp;
+<b class="nc">&nbsp;    while (!account.isAccountLocked()) {</b>
+<b class="nc">&nbsp;      if (!authenticate(scanner, account)) break; // 密碼驗證失敗則退出</b>
+&nbsp;
+<b class="nc">&nbsp;      boolean exit = false;</b>
+<b class="nc">&nbsp;      while (!exit) {</b>
+<b class="nc">&nbsp;        int choice = showMainMenu(scanner);</b>
+<b class="nc">&nbsp;        switch (choice) {</b>
+&nbsp;          case 1:
+<b class="nc">&nbsp;            performWithdrawal(account, scanner);</b>
+&nbsp;            break;
+&nbsp;          case 2:
+<b class="nc">&nbsp;            checkBalance(account);</b>
+&nbsp;            break;
+&nbsp;          case 3:
+<b class="nc">&nbsp;            System.out.println(&quot;感謝使用，再見！&quot;);</b>
+<b class="nc">&nbsp;            exit = true;</b>
+&nbsp;            break;
+&nbsp;          default:
+<b class="nc">&nbsp;            System.out.println(&quot;無效選項，請重新選擇。&quot;);</b>
+&nbsp;        }
+&nbsp;      }
+&nbsp;    }
+<b class="nc">&nbsp;    scanner.close();</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 密碼驗證
+&nbsp;  static boolean authenticate(Scanner scanner, Account account) {
+<b class="fc">&nbsp;    System.out.print(&quot;請輸入密碼：&quot;);</b>
+<b class="fc">&nbsp;    String password = scanner.nextLine();</b>
+<b class="fc">&nbsp;    if (account.validatePassword(password)) {</b>
+<b class="fc">&nbsp;      System.out.println(&quot;密碼正確，進入主選單。&quot;);</b>
+<b class="fc">&nbsp;      return true;</b>
+&nbsp;    } else {
+<b class="fc">&nbsp;      System.out.println(&quot;密碼錯誤！&quot;);</b>
+<b class="fc">&nbsp;      if (account.isAccountLocked()) {</b>
+<b class="fc">&nbsp;        System.out.println(&quot;帳戶已鎖定，請聯繫客服！&quot;);</b>
+&nbsp;      }
+<b class="fc">&nbsp;      return false;</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  // 顯示主選單
+&nbsp;  static int showMainMenu(Scanner scanner) {
+<b class="fc">&nbsp;    System.out.println(&quot;\n請選擇操作：&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;1. 提款&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;2. 查詢餘額&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;3. 離開&quot;);</b>
+<b class="fc">&nbsp;    System.out.print(&quot;選擇：&quot;);</b>
+<b class="fc">&nbsp;    return scanner.nextInt();</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 選擇貨幣類型
+&nbsp;  static CurrencyType selectCurrency(Scanner scanner) {
+<b class="fc">&nbsp;    System.out.println(&quot;\n請選擇提款貨幣：&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;1. 新台幣 (TWD)&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;2. 美元 (USD)&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;3. 歐元 (EUR)&quot;);</b>
+<b class="fc">&nbsp;    System.out.println(&quot;4. 日圓 (JPY)&quot;);</b>
+<b class="fc">&nbsp;    System.out.print(&quot;選擇：&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;    int choice = scanner.nextInt();</b>
+<b class="fc">&nbsp;    switch (choice) {</b>
+<b class="fc">&nbsp;      case 1: return CurrencyType.TWD;</b>
+<b class="fc">&nbsp;      case 2: return CurrencyType.USD;</b>
+<b class="fc">&nbsp;      case 3: return CurrencyType.EUR;</b>
+<b class="fc">&nbsp;      case 4: return CurrencyType.JPY;</b>
+&nbsp;      default:
+<b class="fc">&nbsp;        System.out.println(&quot;無效選擇，預設使用新台幣&quot;);</b>
+<b class="fc">&nbsp;        return CurrencyType.TWD;</b>
+&nbsp;    }
+&nbsp;  }
+&nbsp;
+&nbsp;  // 執行提款操作
+&nbsp;  static void performWithdrawal(Account account, Scanner scanner) {
+&nbsp;    // 選擇貨幣類型
+<b class="fc">&nbsp;    CurrencyType currencyType = selectCurrency(scanner);</b>
+&nbsp;
+&nbsp;    // 輸入提款金額
+<b class="fc">&nbsp;    System.out.print(&quot;請輸入提款金額（&quot; + currencyType.name() + &quot;）：&quot;);</b>
+<b class="fc">&nbsp;    double amount = scanner.nextDouble();</b>
+&nbsp;
+&nbsp;    // 如果是外幣，顯示換算資訊
+<b class="fc">&nbsp;    if (currencyType != CurrencyType.TWD) {</b>
+<b class="fc">&nbsp;      double amountInTWD = currencyType.convertToTWD(amount);</b>
+<b class="fc">&nbsp;      System.out.printf(&quot;換算金額：%.2f TWD (匯率：1 %s = %.2f TWD)\n&quot;,</b>
+<b class="fc">&nbsp;          amountInTWD, currencyType.name(), currencyType.getExchangeRate());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // 確認是否為本行ATM
+<b class="fc">&nbsp;    System.out.print(&quot;是否為本行 ATM？(Y/N)：&quot;);</b>
+<b class="fc">&nbsp;    boolean isNonBankATM = !scanner.next().trim().equalsIgnoreCase(&quot;Y&quot;);</b>
+&nbsp;
+&nbsp;    // 執行提款
+<b class="fc">&nbsp;    ATMOperations.performWithdrawal(account, amount, currencyType, isNonBankATM);</b>
+&nbsp;  }
+&nbsp;
+&nbsp;  // 查詢帳戶餘額
+&nbsp;  static void checkBalance(Account account) {
+<b class="fc">&nbsp;    System.out.println(&quot;當前餘額：&quot; + account.getBalance() + &quot; TWD&quot;);</b>
+&nbsp;    // 顯示各幣別約當金額
+<b class="fc">&nbsp;    System.out.println(&quot;\n約當外幣金額：&quot;);</b>
+<b class="fc">&nbsp;    for (CurrencyType currency : CurrencyType.values()) {</b>
+<b class="fc">&nbsp;      if (currency != CurrencyType.TWD) {</b>
+<b class="fc">&nbsp;        double foreignAmount = currency.convertFromTWD(account.getBalance());</b>
+<b class="fc">&nbsp;        System.out.printf(&quot;%s：%.2f\n&quot;, currency.getDescription(), foreignAmount);</b>
+&nbsp;      }
+&nbsp;    }
+&nbsp;  }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-12-29 11:19</div>
+</div>
+</body>
+</html>

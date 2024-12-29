@@ -1,0 +1,166 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Constants</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.example</a>
+</div>
+
+<h1>Coverage Summary for Class: Constants (org.example)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Constants</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package org.example;
+&nbsp;
+&nbsp;//銀行 ATM 提款限制規則：
+&nbsp;
+&nbsp;//1.提款金額限制：
+&nbsp;//單次提款不得超過 20,000 元。
+&nbsp;//每日提款限額為 60,000 元。
+&nbsp;
+&nbsp;//2.外幣提款：
+&nbsp;//如果提款外幣，收取 1% 手續費，最低 10 元。
+&nbsp;
+&nbsp;//3.非本行提款：
+&nbsp;//如果在非本行 ATM 提款，額外收取 15 元手續費。
+&nbsp;
+&nbsp;//4.餘額警示：
+&nbsp;//如果帳戶餘額低於 1,000 元，提示「餘額不足」。
+&nbsp;
+&nbsp;//5.密碼錯誤限制：
+&nbsp;//如果密碼連續輸入錯誤 3 次，鎖定帳戶並通知用戶聯繫客服。
+&nbsp;
+&nbsp;//6.根據帳戶類型（普通、金卡、白金）設定不同的提款限制：
+&nbsp;//普通用戶：每日限額 60,000 元，單次限額 20,000 元。
+&nbsp;//金卡用戶：每日限額 120,000 元，單次限額 50,000 元。
+&nbsp;//白金用戶：無限額。
+&nbsp;
+&nbsp;//7.根據提款時間計算不同的手續費：
+&nbsp;//* 9:00 - 17:00（工作時間:(含 09:00，不含 17:00)）：免額外手續費。
+&nbsp;//* 17:00 - 23:00（晚間:含 17:00，不含 23:00）：加收 10 元。
+&nbsp;//* 23:00 - 9:00（夜間:含 23:00，不含09:00）：加收 20 元。
+&nbsp;
+&nbsp;//8. 提供3種貨幣(美元,歐元,日幣)的國際提款選項，並根據匯率進行計算。
+&nbsp;
+&nbsp;
+&nbsp;import java.time.LocalTime;
+&nbsp;
+<b class="nc">&nbsp;public class Constants {</b>
+&nbsp;    // 提款限額常數
+&nbsp;    public static final int NORMAL_MAX_WITHDRAWAL_PER_TRANSACTION = 20000;
+&nbsp;    public static final int NORMAL_MAX_DAILY_WITHDRAWAL = 60000;
+&nbsp;    public static final int GOLD_MAX_WITHDRAWAL_PER_TRANSACTION = 50000;
+&nbsp;    public static final int GOLD_MAX_DAILY_WITHDRAWAL = 120000;
+&nbsp;    public static final int PLATINUM_MAX_WITHDRAWAL_PER_TRANSACTION = Integer.MAX_VALUE;
+&nbsp;    public static final int PLATINUM_MAX_DAILY_WITHDRAWAL = Integer.MAX_VALUE;
+&nbsp;
+&nbsp;    // 手續費相關常數
+&nbsp;    public static final int FOREIGN_CURRENCY_FEE_MIN = 10; // 外幣提款最低手續費
+&nbsp;    public static final int NON_BANK_FEE = 15; // 非本行 ATM 提款的額外手續費
+&nbsp;
+&nbsp;    // 其他系統常數
+&nbsp;    public static final int LOW_BALANCE_WARNING = 1000; // 餘額警示閾值
+&nbsp;    public static final int MAX_PASSWORD_ATTEMPTS = 3; // 密碼錯誤次數上限
+&nbsp;
+&nbsp;    // 時段手續費常數
+&nbsp;    public static final int EVENING_EXTRA_FEE = 10;  // 晚間額外手續費
+&nbsp;    public static final int NIGHT_EXTRA_FEE = 20;    // 夜間額外手續費
+&nbsp;
+&nbsp;    // 時間區間常數
+<b class="fc">&nbsp;    public static final LocalTime WORK_START_TIME = LocalTime.of(9, 0);    // 工作時間開始</b>
+<b class="fc">&nbsp;    public static final LocalTime WORK_END_TIME = LocalTime.of(17, 0);     // 工作時間結束</b>
+<b class="fc">&nbsp;    public static final LocalTime EVENING_END_TIME = LocalTime.of(23, 0);  // 晚間時間結束</b>
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-12-29 11:19</div>
+</div>
+</body>
+</html>
