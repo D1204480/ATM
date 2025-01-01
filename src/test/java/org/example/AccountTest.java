@@ -103,7 +103,7 @@ class AccountTest {
   }
 
   @Test
-  @DisplayName("增加當日提款記錄")
+  @DisplayName("累計當日提款金額")
   void testGetDailyWithdrawnAmount() {
     assertEquals(0, account.getDailyWithdrawnAmount());
     account.addDailyWithdrawnAmount(1000);
@@ -164,7 +164,7 @@ class AccountTest {
   }
 
   @Test
-  @DisplayName("提款為0, 提款次數是否正確")
+  @DisplayName("提款為0, 每日提款金額累計是否正確")
   void testAddDailyWithdrawnAmountWithZero() {
     int initialAmount = account.getDailyWithdrawnAmount();
     account.addDailyWithdrawnAmount(0);
